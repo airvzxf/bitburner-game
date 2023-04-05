@@ -1,4 +1,4 @@
-import {allFiles} from "./js-allFiles";
+import {allFiles} from "importFromGitHub/js-allFiles";
 
 /**
  * Import this scripts to the game Bitburner.
@@ -11,8 +11,8 @@ import {allFiles} from "./js-allFiles";
  * @param {NS} ns The net script
  */
 export async function main(ns) {
-    const url = "https://raw.githubusercontent.com/airvzxf/bitburner-game/main/src";
-    for (const file of allFiles) {
-        await ns.wget(url + file, file, "home");
-    }
+	const url = "https://raw.githubusercontent.com/airvzxf/bitburner-game/main/src";
+	for (const file of allFiles) {
+		await ns.wget(url + file, file, "home");
+	}
 }

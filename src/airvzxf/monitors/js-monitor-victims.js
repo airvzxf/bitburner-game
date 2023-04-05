@@ -1,4 +1,4 @@
-import {jsGetVictimsFiltered} from "../helpers/js-getVictimsFiltered";
+import {jsGetVictimsFiltered} from "airvzxf/helpers/js-getVictimsFiltered";
 
 /**
  * Return the information about the victim servers.

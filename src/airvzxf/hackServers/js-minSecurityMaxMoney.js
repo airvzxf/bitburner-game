@@ -135,42 +135,29 @@ function getAllServers(ns, host = "home", parentHost = "") {
 function weakenSecurity(ns, victim, hacker, forceWeaken = false) {
 	let victimServer = ns.getServer(victim);
 
-	if (!victimServer.hasAdminRights) {
-		return true;
-	}
-
 	if (victimServer.hackDifficulty > victimServer.minDifficulty || forceWeaken) {
 		const hackerServer = ns.getServer(hacker);
 		const hackerWeakPower = ns.weakenAnalyze(1, hackerServer.cpuCores);
-		const weakenScriptName = "js-weaken.js";
+		const weakenScriptName = "airvzxf/hackServers/js-weaken.js";
 		const victimSecurity = 100 - victimServer.minDifficulty;
 		const victimThreadsRequired = Math.ceil(victimSecurity / hackerWeakPower);
 		ns.exec(weakenScriptName, hacker, victimThreadsRequired, victim);
-		if (!forceWeaken) {
-			return false;
-		}
 	}
-
-	return true;
 }
 
 /**
- * Growth the security to maximum.
+ * Growth the money to maximum.
  *
  * @param {NS} ns The Net Script.
  * @param {string} victim The hostname of the victim server.
  * @param {string} hacker The hostname of the hacker server.
  */
-function growthSecurity(ns, victim, hacker) {
+function growthMoney(ns, victim, hacker) {
 	let victimServer = ns.getServer(victim);
-
-	if (!victimServer.hasAdminRights) {
-		return true;
-	}
 
 	if (victimServer.moneyAvailable < victimServer.moneyMax) {
 		const hackerServer = ns.getServer(hacker);
-		const growthScriptName = "js-grow.js";
+		const growthScriptName = "airvzxf/hackServers/js-grow.js";
 		const growthScriptMemory = ns.getScriptRam(growthScriptName);
 		const hackerMemoryAvailable = hackerServer.maxRam - hackerServer.ramUsed;
 		const player = ns.getPlayer();
@@ -184,10 +171,9 @@ function growthSecurity(ns, victim, hacker) {
 		const hackerThreadsAvailable = Math.floor(hackerMemoryAvailable / growthScriptMemory);
 		const threads = Math.min(victimThreadsRequired, hackerThreadsAvailable);
 		ns.exec(growthScriptName, hacker, threads, victim);
-		return false;
 	}
 
-	return true;
+	return victimServer.moneyAvailable < victimServer.moneyMax;
 }
 
 /**
@@ -203,21 +189,12 @@ export async function main(ns) {
 
 	const host = "home";
 	const servers = getAllServers(ns);
-	const delayTime = 1000;
 
-	let continueProcess = true;
-	while (continueProcess) {
-		continueProcess = false;
-		for (let server of servers) {
-			const weakenResult = weakenSecurity(ns, server, host);
-			if (!weakenResult) {
-				continueProcess = true;
-			}
-			const growthResult = growthSecurity(ns, server, host);
-			if (!growthResult) {
-				continueProcess = true;
-			}
+	for (let server of servers) {
+		const victimServer = ns.getServer(server);
+		if (victimServer.hasAdminRights) {
+			const isGrowthMoney = growthMoney(ns, server, host);
+			weakenSecurity(ns, server, host, isGrowthMoney);
 		}
-		await ns.sleep(delayTime);
 	}
 }

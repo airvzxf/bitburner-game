@@ -1,4 +1,4 @@
-import {jsGetVictimsFiltered} from "../helpers/js-getVictimsFiltered";
+import {jsGetVictimsFiltered} from "airvzxf/helpers/js-getVictimsFiltered";
 
 const Constants = {
 	// Server-related constants

@@ -1,4 +1,4 @@
-import {jsGetVictimsFiltered} from "../helpers/js-getVictimsFiltered";
+import {jsGetVictimsFiltered} from "airvzxf/helpers/js-getVictimsFiltered";
 
 const Constants = {
 	// Server-related constants
@@ -300,11 +300,6 @@ function emulateHackedCycle(ns, information) {
 	requiredMemory += scriptGrowthMemory * threadToGrowth;
 	const scriptWeakenGrowthMemory = ns.getScriptRam(information.scriptWeakenGrowth);
 	requiredMemory += scriptWeakenGrowthMemory * threadsWeakenAfterGrowth;
-	// ns.tprint(hacker.hostname +
-	// 	" | Scripts: 🛡️ " + ns.nFormat(threadsWeakenAfterHack + threadsWeakenAfterGrowth, "0,0") +
-	// 	" 💰 " + ns.nFormat(threadToGrowth, "0,0") +
-	// 	" 💻 " + ns.nFormat(threadToHack, "0,0") +
-	// 	" = " + (threadsWeakenAfterHack + threadsWeakenAfterGrowth + threadToGrowth + threadToHack));
 	const hackerMemoryAvailable = Math.floor(hacker.maxRam - hacker.ramUsed);
 	if (requiredMemory > hackerMemoryAvailable) {
 		const requiredMemoryText = ns.nFormat(requiredMemory, "0,0.00");
@@ -370,15 +365,9 @@ function emulateHackedCycle(ns, information) {
 		},
 	};
 
-	// ns.tprint("");
-	// ns.tprint("");
-	// ns.tprint("");
-
 	const timelineKeys = Object.keys(timeline);
 	let firstKey = timelineKeys[0];
 	timeline[firstKey].timeTotal = timeline[firstKey].time;
-	// ns.tprint("timeline[firstKey]:\n" + JSON.stringify(timeline[firstKey]));
-	// ns.tprint("");
 
 	for (let index = 1; index < timelineKeys.length; index += 1) {
 		const currentKey = timelineKeys[index];
@@ -386,34 +375,19 @@ function emulateHackedCycle(ns, information) {
 		const totalTime = timeline[lastKey].timeTotal;
 		const processTime = timeline[currentKey].time;
 		const processWaitTime = totalTime - processTime + information.timelineDelayMs;
-		// ns.tprint("currentKey ~ timelineKeys[index]: " + currentKey);
-		// ns.tprint("lastKey ~ timelineKeys[index - 1]: " + lastKey);
-		// ns.tprint("totalTime ~ timeline[lastKey].timeTotal: " + totalTime);
-		// ns.tprint("processTime ~ timeline[currentKey].time: " + processTime);
-		// ns.tprint("information.timelineDelayMs: " + information.timelineDelayMs);
-		// ns.tprint("processWaitTime ~ totalTime - processTime + information.timelineDelayMs: " + processWaitTime);
 
 		if (processWaitTime < 0) {
-			// ns.tprint("timeline[lastKey]:\n" + JSON.stringify(timeline[lastKey]));
-			// ns.tprint("timeline[currentKey]:\n" + JSON.stringify(timeline[currentKey]));
 			timeline[lastKey].timeWait = Math.abs(processWaitTime);
 			timeline[lastKey].timeNext = Math.abs(processWaitTime);
 			timeline[lastKey].timeTotal = timeline[lastKey].time + timeline[lastKey].timeWait;
 			timeline[currentKey].timeWait = 0;
 			timeline[currentKey].timeNext = 0;
 			timeline[currentKey].timeTotal = processTime;
-			// ns.tprint("timeline[lastKey]:\n" + JSON.stringify(timeline[lastKey]));
-			// ns.tprint("timeline[currentKey]:\n" + JSON.stringify(timeline[currentKey]));
 		} else {
-			// ns.tprint("timeline[lastKey]:\n" + JSON.stringify(timeline[lastKey]));
-			// ns.tprint("timeline[currentKey]:\n" + JSON.stringify(timeline[currentKey]));
 			timeline[currentKey].timeWait = processWaitTime;
 			timeline[currentKey].timeNext = processWaitTime;
 			timeline[currentKey].timeTotal = timeline[lastKey].timeTotal + information.timelineDelayMs;
-			// ns.tprint("timeline[lastKey]:\n" + JSON.stringify(timeline[lastKey]));
-			// ns.tprint("timeline[currentKey]:\n" + JSON.stringify(timeline[currentKey]));
 		}
-		// ns.tprint("");
 	}
 
 	const lastKey = timelineKeys[timelineKeys.length - 1];
@@ -454,16 +428,8 @@ function calculateBestHackMoney(ns, information) {
 	const percentHacked = calculatePercentMoneyHacked(victim, player);
 	const maxThreadNeeded = Math.ceil(1 / percentHacked);
 	for (information.threadsToHack = 1; information.threadsToHack <= maxThreadNeeded; information.threadsToHack += 1) {
-		// ns.tprint("---------------------------");
-		// const moneyDrained = Math.floor(victim.moneyAvailable * percentHacked) * information.threadsToHack;
-		// const message = "Hack threads " + ns.nFormat(information.threadsToHack, "0,0") +
-		// 	" / " + ns.nFormat(maxThreadNeeded, "0,0") +
-		// 	" / " + ns.nFormat(1 / percentHacked, "0,0.00") +
-		// 	" | Money " + ns.nFormat(moneyDrained, "$0,0.00");
-		// ns.tprint(message);
 		hackedCycle = emulateHackedCycle(ns, information);
 		if (hackedCycle.errors.length > 0) {
-			// ns.tprint("hackedCycle.errors: " + JSON.stringify(hackedCycle.errors));
 			break;
 		}
 	}
@@ -472,17 +438,17 @@ function calculateBestHackMoney(ns, information) {
 	hackedCycle = emulateHackedCycle(ns, information);
 
 	const moneyDrained = Math.floor(victim.moneyAvailable * percentHacked) * information.threadsToHack;
+	const moneyGainPercent = moneyDrained / victim.moneyMax * 100;
 	const message = hacker.hostname + " -> " + victim.hostname +
 		" | 🧵 " + ns.nFormat(information.threadsToHack, "0,0") +
 		" / " + ns.nFormat(maxThreadNeeded, "0,0") +
-		" | 💰 " + ns.nFormat(moneyDrained, "$0,0.00") +
+		" | 💰 " + ns.nFormat(moneyGainPercent, "0.00%") +
 		" / " + ns.nFormat(victim.moneyMax, "$0,0.00") +
 		" | 💻️📀 " + ns.nFormat(hackedCycle.requiredMemory, "0,0") +
 		" ~ " + ns.nFormat(hackedCycle.totalRequiredMemory, "0,0") +
 		" | 💻️ " + hackedCycle.timeline.hack.time + " ms" +
 		" 🛡️ " + hackedCycle.timeline.weakenHack.time + " ms" +
-		" 💰️ " + hackedCycle.timeline.growth.time + " ms" +
-		" 🛡️ " + hackedCycle.timeline.weakenGrowth.time + " ms";
+		" 💰️ " + hackedCycle.timeline.growth.time + " ms";
 	ns.tprint(message);
 
 	if (information.threadsToHack > 0) {
@@ -510,21 +476,10 @@ export async function main(ns) {
 		victims.push({victim: hostname, hacker: "",});
 	}
 
-	// victims.push({victim: "n00dles", hacker: "",});
-	// victims.push({victim: "max-hardware", hacker: "",});
-	// victims.push({victim: "silver-helix", hacker: "",});
-	// victims.push({victim: "the-hub", hacker: "",});
-	// victims.push({victim: "computek", hacker: "",});
-	// victims.push({victim: "summit-uni", hacker: "",});
-	// victims.push({victim: "alpha-ent", hacker: "",});
-	// victims.push({victim: "aevum-police", hacker: "",});
-	// victims.push({victim: "unitalife", hacker: "",});
-	// victims.push({victim: "kuai-gong", hacker: "", });
-
-	const scriptHack = "js-hack.js";
-	const scriptWeakenHack = "js-weakenHack.js";
-	const scriptGrowth = "js-grow.js";
-	const scriptWeakenGrowth = "js-weakenGrow.js";
+	const scriptHack = "airvzxf/hackServers/js-hack.js";
+	const scriptWeakenHack = "airvzxf/hackServers/js-weakenHack.js";
+	const scriptGrowth = "airvzxf/hackServers/js-grow.js";
+	const scriptWeakenGrowth = "airvzxf/hackServers/js-weakenGrow.js";
 
 	const execution = {
 		hack: [],
@@ -538,7 +493,7 @@ export async function main(ns) {
 	for (let serverIndex = 0; serverIndex < serversMin; serverIndex += 1) {
 		ns.killall(hackers[serverIndex]);
 		ns.scp(
-			[scriptHack, scriptWeakenHack, scriptGrowth, scriptWeakenGrowth, "js-weaken.js"],
+			[scriptHack, scriptWeakenHack, scriptGrowth, scriptWeakenGrowth, "airvzxf/hackServers/js-weaken.js",],
 			hackers[serverIndex],
 			"home"
 		);
@@ -546,8 +501,6 @@ export async function main(ns) {
 
 	let hackerIndex = 0;
 	let hackerMemoryFree = ns.getServer(hackers[hackerIndex]).maxRam - ns.getServer(hackers[hackerIndex]).ramUsed;
-	const hackerLength = hackers.length;
-	ns.tprint("hackerLength:" + hackerLength);
 
 	for (let victimInformation of victims) {
 		victimInformation.hacker = hackers[hackerIndex];
@@ -598,8 +551,6 @@ export async function main(ns) {
 		};
 
 		const hackedCycle = calculateBestHackMoney(ns, information);
-		// ns.tprint("hackedCycle.requiredMemory: " + Math.ceil(hackedCycle.requiredMemory));
-		// ns.tprint("hackedCycle.totalRequiredMemory: " + Math.ceil(hackedCycle.totalRequiredMemory));
 		hackerMemoryFree -= hackedCycle.requiredMemory;
 		if (hackerMemoryFree < 0) {
 			hackerIndex += 1;
@@ -609,7 +560,6 @@ export async function main(ns) {
 		if (hackedCycle.errors.length > 0) {
 			for (let error of hackedCycle.errors) {
 				ns.tprint(error);
-				console.warn(error);
 			}
 			return;
 		}
@@ -635,49 +585,21 @@ export async function main(ns) {
 			for (let actionType of nameOfActions) {
 				const action = execution[actionType][processIndex];
 				const currentTime = Date.now() - startTime;
-				// ns.tprint("currentTime: " + currentTime + " ms");
 				if (currentTime >= action.timeNext) {
-					ns.tprint("+++++++++++++++++++++++++");
-					// ns.tprint("action: " + JSON.stringify(action));
-					const otherCurrentTime = Date.now() - startTime;
-					ns.tprint("otherCurrentTime: " + otherCurrentTime + " ms");
-					const timeNext = action.timeNext;
-					ns.tprint("action.timeNext: " + action.timeNext + " ms");
-					// const currentTimeDiff = otherCurrentTime - action.timeNext;
-					// ns.tprint("currentTimeDiff: " + currentTimeDiff + " ms");
 					const actionTypeIndex = nameOfActions.indexOf(actionType);
-					ns.tprint("* actionTypeIndex: " + actionTypeIndex);
 					const actionTypeIndexInverse = numberOfActions - 1 - actionTypeIndex;
-					ns.tprint("* actionTypeIndexInverse: " + actionTypeIndexInverse);
 					const timeDelayByPosition = action.timeDelay * actionTypeIndexInverse;
-					ns.tprint("* timeDelayByPosition: " + timeDelayByPosition);
-					// action.timeNext += action.timeDelay * numberOfActions;
 					action.timeNext += action.time + action.timeWait + timeDelayByPosition;
-					ns.tprint("action.timeNext: " + action.timeNext + " ms");
 					if (action.isFirstProcess) {
-						ns.tprint("* if (action.isFirstProcess): " + action.isFirstProcess);
 						action.isFirstProcess = false;
-						ns.tprint("* action.isFirstProcess: " + action.isFirstProcess);
-						// ns.tprint(JSON.stringify(action));
 						action.timeNext = action.timeTotal + action.timeWait + timeDelayByPosition;
-						ns.tprint("* action.timeNext: " + action.timeNext);
 					}
 
-					const pid = ns.exec(action.script, action.hacker, action.threads, action.victim, processId, startTime, timeNext, action.time, action.timeWait, action.timeDelay);
+					const pid = ns.exec(action.script, action.hacker, action.threads, action.victim);
 					const actionDescription = JSON.stringify(action);
 					if (pid < 1) {
 						ns.tprint("WARNING: This process is not executed: " + actionDescription);
 						return;
-					} else {
-						ns.tprint("INFO: This process is executed: " + actionDescription);
-						const server = ns.getServer(action.victim);
-						const security = server.hackDifficulty - server.minDifficulty;
-						const moneyMissing = server.moneyMax - server.moneyAvailable;
-						const message = "INFO: Process ID #" + processId +
-							" | 💰 " + ns.nFormat(server.moneyAvailable, "0,0.00") +
-							" / " + ns.nFormat(moneyMissing, "0,0.00") +
-							" | 🛡️ " + ns.nFormat(security, "0,0.00");
-						ns.tprint(message);
 					}
 					processId += 1;
 				}

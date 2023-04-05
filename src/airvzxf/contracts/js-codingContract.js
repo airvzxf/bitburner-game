@@ -1,4 +1,4 @@
-import {encryptionICaesarCipher} from "./js-codingContract-Encryption1-CaesarCipher";
+import {encryptionICaesarCipher} from "airvzxf/contracts/js-codingContract-Encryption1-CaesarCipher";
 
 /**
  * Experiment 1 about the Net Script Coding Contract API.
